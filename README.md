@@ -23,8 +23,7 @@ A lightweight, secure **Authentication API** built with **FastAPI** and **Python
 - 🚀 **Refresh Tokens** endpoint to renew access tokens
 - 🔑 **API Key Middleware** to secure all requests
 - ⚡ **SQLite for local development** and **Postgres (Railway) in production**
-- 🌐 **CORS configuration ready** for frontend integrations
-- 🧪 Clean local dev setup
+- 🌐 **CORS configured** for frontend integrations
 
 ---
 
@@ -122,7 +121,6 @@ This project is deployed on [Railway](https://railway.app/).
 ## Future Improvements
 
 - 📬 Password reset email functionality (coming next)
-- 🌐 CORS configuration
 - 🖥️ Frontend integration (React/Next.js)
 - 🧪 Unit and integration tests
 - 🛡 Role-based access control (RBAC)
