@@ -4,3 +4,6 @@ venv/
 
 # Environment
 .env
+
+# Local DB files
+*.db
