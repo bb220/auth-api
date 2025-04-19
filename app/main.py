@@ -12,6 +12,7 @@ from app.cors import add_cors_middleware
 from app.database import get_db
 from app.models import User
 from app.reset_token_handler import create_password_reset_token, verify_password_reset_token
+from app.email_sender import send_reset_email
 
 api_key_header = APIKeyHeader(name="Authorization")
 
@@ -98,8 +99,8 @@ def request_password_reset(email: str, db: Session = Depends(get_db)):
     # Create reset link
     reset_link = f"https://yourfrontend.com/reset-password?token={reset_token}"
 
-    # For now, mock email sending
-    print(f"Password reset link for {user.email}: {reset_link}")
+    # Send email
+    send_reset_email(user.email, reset_link)
 
     return {"message": "If the email is associated with an account, a reset link has been sent."}
 
