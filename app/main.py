@@ -2,10 +2,12 @@ import os
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from . import models, schemas, crud, database, auth
-from .jwt_handler import create_access_token, verify_access_token
+from .jwt_handler import create_access_token, create_refresh_token, verify_token
 from fastapi.security import APIKeyHeader
-from fastapi import Request, Security
+from fastapi import Body, Request, Security
 from fastapi.responses import JSONResponse
+from app.schemas import UserLogin
+from app.auth import verify_password
 
 api_key_header = APIKeyHeader(name="Authorization")
 
@@ -44,15 +46,33 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db, user)
 
 @app.post("/login")
-def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, user.email)
-    if not db_user or not auth.verify_password(user.password, db_user.hashed_password):
-        raise HTTPException(status_code=400, detail="Invalid credentials")
-    
-    # Create JWT token
-    access_token = create_access_token(data={"sub": str(db_user.id)})
-    
-    return {"access_token": access_token, "token_type": "bearer"}
+def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.email == user_credentials.email).first()
+    if not user or not verify_password(user_credentials.password, user.hashed_password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+    access_token = create_access_token(data={"user_id": user.id})
+    refresh_token = create_refresh_token(data={"user_id": user.id})
+
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer"
+    }
+
+@app.post("/refresh")
+def refresh_token(refresh_token: str = Body(...)):
+    payload = verify_token(refresh_token)
+    if not payload:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+
+    user_id = payload.get("user_id")
+    new_access_token = create_access_token(data={"user_id": user_id})
+
+    return {
+        "access_token": new_access_token,
+        "token_type": "bearer"
+    }
 
 @app.post("/reset-password")
 def reset_password(user: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -69,10 +89,10 @@ def protected_route(token: str = Security(api_key_header)):
         raise HTTPException(status_code=403, detail="Invalid authorization header format")
 
     real_token = token.split("Bearer ")[1]
-    payload = verify_access_token(real_token)
+    payload = verify_token(real_token)
     if payload is None:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-    user_id = payload.get("sub")
+    user_id = payload.get("user_id")
     return {"message": f"Welcome user {user_id}!"}
     
