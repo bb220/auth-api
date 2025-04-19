@@ -1,16 +1,17 @@
 # Auth API
 
-![License](https://img.shields.io/badge/license-MIT-green)
-![Framework](https://img.shields.io/badge/framework-FastAPI-0ba360)
-![Deployment](https://img.shields.io/badge/deployment-Railway-6c4cff)
-![Python](https://img.shields.io/badge/python-3.12%2B-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
+![Python](https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge&logo=python)
+![SendGrid](https://img.shields.io/badge/SendGrid-00b2ff?style=for-the-badge&logo=sendgrid)
+![Deployed on Railway](https://img.shields.io/badge/Railway-App-6c4cff?style=for-the-badge&logo=railway)
+![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 A lightweight, secure **Authentication API** built with **FastAPI** and **Python**, supporting:
 - **User registration**
 - **Login with JWT Authentication**
 - **Access and Refresh Tokens**
 - **Protected routes**
-- **Password reset (in progress)**
+- **Password reset with real email sending via SendGrid**
 - **Secure API key verification**
 
 ---
@@ -20,10 +21,12 @@ A lightweight, secure **Authentication API** built with **FastAPI** and **Python
 - 🛡 **User Registration** with secure password hashing (bcrypt)
 - 🔐 **Login** with JWT Access Tokens (30 min) + Refresh Tokens (7 days)
 - 🔒 **Protected Routes** using Bearer Token authentication
+- 📬 **Password Reset Email Flow** (Real email delivery via SendGrid)
 - 🚀 **Refresh Tokens** endpoint to renew access tokens
-- 🔑 **API Key Middleware** to secure all requests
+- 🔑 **API Key Middleware** to secure all API requests
 - ⚡ **SQLite for local development** and **Postgres (Railway) in production**
-- 🌐 **CORS configured** for frontend integrations
+- 🌐 **CORS configuration** for frontend integrations
+- 🧪 Clean local dev setup ready for production upgrades
 
 ---
 
@@ -35,6 +38,7 @@ A lightweight, secure **Authentication API** built with **FastAPI** and **Python
 - **SQLite** — Local development database
 - **Passlib** — Password hashing using bcrypt
 - **Python-Jose** — JWT token creation and validation
+- **SendGrid** — Real email sending service
 - **python-dotenv** — Environment variable management
 - **Uvicorn** — ASGI server for running FastAPI apps
 
@@ -72,9 +76,11 @@ SECRET_KEY=your-super-secret-key
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 REFRESH_TOKEN_EXPIRE_MINUTES=10080  # 7 days
 API_KEY=your-api-key-here
+SENDGRID_API_KEY=your-sendgrid-api-key
+FROM_EMAIL=your-verified-sender@example.com
 ```
 
-✅ In production, `DATABASE_URL` and other env vars are managed by Railway.
+✅ In production, `DATABASE_URL` and all env variables are managed securely with Railway.
 
 ---
 
@@ -94,21 +100,22 @@ uvicorn app.main:app --reload
 | Method | Endpoint | Purpose |
 |:---|:---|:---|
 | `POST` | `/register` | Register a new user |
-| `POST` | `/login` | Log in and receive access + refresh tokens |
-| `POST` | `/refresh` | Refresh access token using refresh token |
-| `GET` | `/protected` | Access protected route (requires Bearer token) |
-| `POST` | `/reset-password` | (Planned) Reset password functionality |
-| `POST` | `/request-password-reset` | (Planned) Send password reset email |
+| `POST` | `/login` | Authenticate user and receive access + refresh tokens |
+| `POST` | `/refresh` | Obtain a new access token using a refresh token |
+| `POST` | `/request-password-reset` | Request password reset (sends real email via SendGrid) |
+| `POST` | `/reset-password` | Reset password using a valid token and new password |
+| `GET` | `/protected` | Access a route secured by Bearer token authentication |
 
 ---
 
 ## Security Highlights
 
 - Passwords are **hashed** before storage (bcrypt)
-- Tokens are **short-lived** and **signed** (JWT)
-- Refresh tokens enable **longer sessions** without compromising security
-- API access requires a **valid API key header**
-- Environment variables securely managed using `.env` (local) or Railway (production)
+- Access Tokens and Refresh Tokens are **short-lived** and **signed** (JWT)
+- Password Reset Tokens are **short-lived** and securely signed
+- API requests secured with a **valid API key** middleware
+- CORS configured to allow only trusted frontend domains
+- Real **email password reset flow** using **SendGrid** with API keys
 
 ---
 
@@ -116,16 +123,15 @@ uvicorn app.main:app --reload
 
 This project is deployed on [Railway](https://railway.app/).
 
+✅ Live Railway URL:  
+(*Insert your deployment URL here if public*)
+
 ---
 
 ## Future Improvements
 
-- 📬 Password reset email functionality (coming next)
-- 🖥️ Frontend integration (React/Next.js)
-- 🧪 Unit and integration tests
 - 🛡 Role-based access control (RBAC)
-- ⚙️ Alembic migrations for database versioning
-
+- 🧪 Unit and integration test coverage
 
 ---
 
