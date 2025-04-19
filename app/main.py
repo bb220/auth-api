@@ -8,12 +8,15 @@ from fastapi import Body, Request, Security
 from fastapi.responses import JSONResponse
 from app.schemas import UserLogin
 from app.auth import verify_password
+from app.cors import add_cors_middleware
 
 api_key_header = APIKeyHeader(name="Authorization")
 
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI()
+
+add_cors_middleware(app)
 
 API_KEY = os.getenv("API_KEY")
 
