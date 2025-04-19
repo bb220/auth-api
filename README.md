@@ -1,5 +1,10 @@
 # Auth API
 
+![License](https://img.shields.io/badge/license-MIT-green)
+![Framework](https://img.shields.io/badge/framework-FastAPI-0ba360)
+![Deployment](https://img.shields.io/badge/deployment-Railway-6c4cff)
+![Python](https://img.shields.io/badge/python-3.12%2B-blue)
+
 A lightweight, secure **Authentication API** built with **FastAPI** and **Python**, supporting:
 - **User registration**
 - **Login with JWT Authentication**
