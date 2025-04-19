@@ -3,13 +3,30 @@ from sqlalchemy.orm import Session
 from . import models, schemas, crud, database, auth
 from .jwt_handler import create_access_token, verify_access_token
 from fastapi.security import APIKeyHeader
-from fastapi import Security
+from fastapi import Request, Security
+from fastapi.responses import JSONResponse
 
 api_key_header = APIKeyHeader(name="Authorization")
 
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI()
+
+API_KEY = os.getenv("API_KEY")
+
+@app.middleware("http")
+async def verify_api_key(request: Request, call_next):
+    # Allow Swagger UI and docs to load without API key
+    if request.url.path in ["/openapi.json", "/docs"]:
+        return await call_next(request)
+
+    # Read the x-api-key header
+    api_key = request.headers.get("x-api-key")
+    
+    if api_key != API_KEY:
+        return JSONResponse(status_code=403, content={"detail": "Forbidden. Invalid or missing API Key."})
+
+    return await call_next(request)
 
 def get_db():
     db = database.SessionLocal()
