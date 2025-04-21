@@ -25,3 +25,24 @@ def send_reset_email(to_email: str, reset_link: str):
         print(f"Password reset email sent to {to_email}. Status Code: {response.status_code}")
     except Exception as e:
         print(f"Error sending email: {e}")
+
+def send_verification_email(to_email: str, token: str):
+    verification_link = f"https://yourfrontend.com/verify-email?token={token}"
+
+    message = Mail(
+        from_email=FROM_EMAIL,
+        to_emails=to_email,
+        subject="Verify Your Email",
+        html_content=f"""
+        <p>Welcome! Please verify your email by clicking the link below:</p>
+        <a href="{verification_link}">Verify Email</a>
+        <p>This link will expire in 1 hour.</p>
+        """
+    )
+
+    try:
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        response = sg.send(message)
+        print(f"Verification email sent to {to_email}. Status Code: {response.status_code}")
+    except Exception as e:
+        print(f"Error sending verification email: {e}")

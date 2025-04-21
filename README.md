@@ -19,6 +19,7 @@ A lightweight, secure **Authentication API** built with **FastAPI** and **Python
 ## Features
 
 - 🛡 **User Registration** with secure password hashing (bcrypt)
+- Email Verification via Secure Token (required before login)
 - 🔐 **Login** with JWT Access Tokens (30 min) + Refresh Tokens (7 days)
 - 🔒 **Protected Routes** using Bearer Token authentication
 - 📬 **Password Reset Email Flow** (Real email delivery via SendGrid)
@@ -95,18 +96,27 @@ uvicorn app.main:app --reload
 
 ---
 
-## API Endpoints
+## 📦 Endpoints Overview
 
-| Method | Endpoint | Purpose |
+### User Authentication
+
+| Method | Endpoint | Description |
 |:---|:---|:---|
-| `POST` | `/register` | Register a new user |
-| `POST` | `/login` | Authenticate user and receive access + refresh tokens |
-| `POST` | `/refresh` | Obtain a new access token using a refresh token |
-| `POST` | `/request-password-reset` | Request password reset (sends real email via SendGrid) |
-| `POST` | `/reset-password` | Reset password using a valid token and new password |
-| `GET` | `/protected` | Access a route secured by Bearer token authentication |
+| `POST` | `/register` | Create new user (sends verification email) |
+| `GET` | `/verify-email` | Verify email using token from email link |
+| `POST` | `/login` | Login user (only verified users allowed) |
+| `POST` | `/refresh` | Refresh access token with refresh token |
+| `GET` | `/protected` | Access a protected route (requires JWT) |
+
+### Password Management
+
+| Method | Endpoint | Description |
+|:---|:---|:---|
+| `POST` | `/request-password-reset` | Request password reset email |
+| `POST` | `/reset-password` | Reset password using token from email |
 
 ---
+
 
 ## Security Highlights
 
@@ -119,19 +129,35 @@ uvicorn app.main:app --reload
 
 ---
 
-## Deployment
+## 📬 Email Requirements
 
-This project is deployed on [Railway](https://railway.app/).
-
-✅ Live Railway URL:  
-(*Insert your deployment URL here if public*)
+- SendGrid account (free tier works)
+- Verified sender email address or domain
+- Frontend application (optional) to catch email verification redirects
 
 ---
 
-## Future Improvements
+## 🚀 Deployment
+
+- App and database deployed on [Railway](https://railway.app/).
+- Environment variables configured securely through Railway console.
+
+---
+
+## ✨ Future Improvements
 
 - 🛡 Role-based access control (RBAC)
+- Resend Verification Email endpoint
+- Session Logging (multi-device login)
+- OAuth2 Social Login (Google, GitHub)
 - 🧪 Unit and integration test coverage
+
+---
+
+## 🏆 Status
+
+- ✅ Authentication, registration, email verification, and password reset are working and production-ready.
+- ✅ Ready to plug into a real frontend application or extend further.
 
 ---
 
