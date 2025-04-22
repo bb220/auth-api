@@ -73,13 +73,28 @@ pip install -r requirements.txt
 Example `.env`:
 
 ```env
-DATABASE_URL=sqlite:///./test.db
-SECRET_KEY=your-super-secret-key
+# .env.example
+
+# Secret Key for JWT signing
+SECRET_KEY=your_super_secret_key_here
+
+# Access Token Expiry Time (minutes)
 ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# Refresh Token Expiry Time (minutes)
 REFRESH_TOKEN_EXPIRE_MINUTES=10080  # 7 days
-API_KEY=your-api-key-here
-SENDGRID_API_KEY=your-sendgrid-api-key
-FROM_EMAIL=your-verified-sender@example.com
+
+# Database URL (SQLite local example)
+DATABASE_URL=sqlite:///./auth_api.db
+
+# SendGrid API Key for sending emails
+SENDGRID_API_KEY=your_sendgrid_api_key_here
+
+# Verified sender email (must match your SendGrid authenticated domain)
+FROM_EMAIL_ADDRESS=your_verified_sender@example.com
+
+# API Key for protecting backend endpoints (x-api-key header)
+API_KEY=your_custom_api_key_here
 ```
 
 ✅ In production, `DATABASE_URL` and all env variables are managed securely with Railway.
@@ -122,12 +137,11 @@ uvicorn app.main:app --reload
 
 ## Security Highlights
 
-- Passwords are **hashed** before storage (bcrypt)
-- Access Tokens and Refresh Tokens are **short-lived** and **signed** (JWT)
-- Password Reset Tokens are **short-lived** and securely signed
-- API requests secured with a **valid API key** middleware
-- CORS configured to allow only trusted frontend domains
-- Real **email password reset flow** using **SendGrid** with API keys
+- Passwords securely hashed
+- Access and Refresh tokens expire upon password changes
+- CORS only allows trusted frontend origins
+- API Key required for all non-doc routes
+- Cooldown/rate limit to protect sensitive email actions
 
 ---
 
@@ -149,8 +163,9 @@ uvicorn app.main:app --reload
 ## ✨ Future Improvements
 
 - 🛡 Role-based access control (RBAC)
-- Resend Verification Email endpoint
-- Session Logging (multi-device login)
+- 🧪 Unit and integration test coverage
+- User Audit Logging
+- Session Logging
 - OAuth2 Social Login (Google, GitHub)
 - 🧪 Unit and integration test coverage
 
@@ -171,5 +186,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Author
 
-Built by [Brandon Bellero](https://github.com/bb220)  
+Built by [bb220](https://github.com/bb220) ✨
 Open to feedback and collaboration!
+
+# 🌟 Keep Building!
