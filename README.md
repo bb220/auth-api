@@ -160,20 +160,10 @@ uvicorn app.main:app --reload
 
 ## ✨ Future Improvements
 
-- 🛡 Role-based access control (RBAC)
-- 🧪 Unit and integration test coverage
-- User Audit Logging
 - Session Logging
-- OAuth2 Social Login (Google, GitHub)
-- 🧪 Unit and integration test coverage
-
----
-
-## 🏆 Status
-
-- ✅ Authentication, registration, email verification, and password reset are working and production-ready.
-- ✅ Ready to plug into a real frontend application or extend further.
-
+- Role-based access control (RBAC)
+- Unit and integration test coverage
+  
 ---
 
 ## License
