@@ -6,28 +6,29 @@
 ![Deployed on Railway](https://img.shields.io/badge/Railway-App-6c4cff?style=for-the-badge&logo=railway)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-A lightweight, secure **Authentication API** built with **FastAPI** and **Python**, supporting:
-- **User registration**
-- **Login with JWT Authentication**
-- **Access and Refresh Tokens**
-- **Protected routes**
-- **Password reset with real email sending via SendGrid**
-- **Secure API key verification**
+A secure authentication API built with **FastAPI**, providing:
+- User Registration with Email Verification
+- Login with JWT Access and Refresh Tokens
+- Password Reset Flow via Email
+- Token Invalidation on Password Reset
+- Rate Limiting on Sensitive Email Actions
+- CORS Middleware and API Key Protection
+- Production-grade Scalability
 
 ---
 
-## Features
+## 💡 Features
 
-- 🛡 **User Registration** with secure password hashing (bcrypt)
-- Email Verification via Secure Token (required before login)
-- 🔐 **Login** with JWT Access Tokens (30 min) + Refresh Tokens (7 days)
-- 🔒 **Protected Routes** using Bearer Token authentication
-- 📬 **Password Reset Email Flow** (Real email delivery via SendGrid)
-- 🚀 **Refresh Tokens** endpoint to renew access tokens
-- 🔑 **API Key Middleware** to secure all API requests
-- ⚡ **SQLite for local development** and **Postgres (Railway) in production**
-- 🌐 **CORS configuration** for frontend integrations
-- 🧪 Clean local dev setup ready for production upgrades
+| Feature | Description |
+|:---|:---|
+| Registration | Register a new user and trigger email verification |
+| Email Verification | Must verify email before login |
+| Login | Generate access and refresh tokens securely |
+| Refresh Tokens | Secure refresh of access tokens with validation |
+| Password Reset | Secure email reset flow and password update |
+| Session Invalidation | Invalidate old tokens after password reset |
+| Cooldown Protection | Rate limit resends and resets |
+| CORS & API Key | Origin restrictions and backend protection |
 
 ---
 
@@ -100,13 +101,14 @@ uvicorn app.main:app --reload
 
 ### User Authentication
 
-| Method | Endpoint | Description |
+| Method | Route | Purpose |
 |:---|:---|:---|
-| `POST` | `/register` | Create new user (sends verification email) |
-| `GET` | `/verify-email` | Verify email using token from email link |
-| `POST` | `/login` | Login user (only verified users allowed) |
-| `POST` | `/refresh` | Refresh access token with refresh token |
-| `GET` | `/protected` | Access a protected route (requires JWT) |
+| POST | `/register` | Register a new user |
+| GET | `/verify-email` | Verify email using a token |
+| POST | `/login` | Login and get access + refresh tokens |
+| POST | `/refresh` | Refresh access token |
+| POST | `/resend-verification-email` | Request resend of verification email |
+| GET | `/protected` | Example secured endpoint |
 
 ### Password Management
 
