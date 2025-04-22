@@ -6,7 +6,7 @@
 ![Deployed on Railway](https://img.shields.io/badge/Railway-App-6c4cff?style=for-the-badge&logo=railway)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-A secure authentication API built with **FastAPI**, providing:
+A secure authentication API providing:
 - User Registration with Email Verification
 - Login with JWT Access and Refresh Tokens
 - Password Reset Flow via Email
@@ -186,7 +186,5 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Author
 
-Built by [bb220](https://github.com/bb220) ✨
+Built by [bb220](https://github.com/bb220)
 Open to feedback and collaboration!
-
-# 🌟 Keep Building!
