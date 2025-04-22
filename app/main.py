@@ -125,8 +125,13 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     if not user.is_verified:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Please verify your email before logging in.")
 
-    access_token = create_access_token(data={"user_id": user.id})
-    refresh_token = create_refresh_token(data={"user_id": user.id})
+    token_data = {
+        "user_id": user.id,
+        "last_password_reset": str(user.last_password_reset)
+    }
+
+    access_token = create_access_token(token_data)
+    refresh_token = create_refresh_token(token_data)
 
     return {
         "access_token": access_token,
@@ -135,13 +140,24 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     }
 
 @app.post("/refresh")
-def refresh_token(refresh_token: str = Body(...)):
-    payload = verify_token(refresh_token)
+def refresh_token(refresh_token: str = Body(...), db: Session = Depends(get_db)):
+    payload = verify_token(refresh_token, db)
     if not payload:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
 
     user_id = payload.get("user_id")
-    new_access_token = create_access_token(data={"user_id": user_id})
+
+    # Re-fetch the user from the database
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+
+    token_data = {
+        "user_id": user.id,
+        "last_password_reset": str(user.last_password_reset)
+    }
+
+    new_access_token = create_access_token(data=token_data)
 
     return {
         "access_token": new_access_token,
@@ -186,6 +202,7 @@ def reset_password(token: str, new_password: str, db: Session = Depends(get_db))
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
 
     user.hashed_password = hash_password(new_password)
+    user.last_password_reset = datetime.utcnow()
     db.commit()
 
     return {"message": "Password reset successful."}
@@ -195,12 +212,12 @@ def reset_password(token: str, new_password: str, db: Session = Depends(get_db))
 # --------------------------------------------------
 
 @app.get("/protected")
-def protected_route(token: str = Security(api_key_header)):
+def protected_route(token: str = Security(api_key_header), db: Session = Depends(get_db)):
     if not token.startswith("Bearer "):
         raise HTTPException(status_code=403, detail="Invalid authorization header format")
 
     real_token = token.split("Bearer ")[1]
-    payload = verify_token(real_token)
+    payload = verify_token(real_token, db)
     if payload is None:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 

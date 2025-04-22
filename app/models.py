@@ -1,4 +1,5 @@
 from sqlalchemy import Boolean, Column, Integer, String, DateTime, func
+from datetime import datetime
 from .database import Base
 
 class User(Base):
@@ -12,3 +13,4 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column (DateTime(timezone=True), onupdate=func.now())
     verified_at = Column(DateTime(timezone=True), nullable=True)
+    last_password_reset = Column(DateTime(timezone=True), default=datetime.utcnow)
