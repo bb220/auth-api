@@ -17,21 +17,6 @@ A secure authentication API providing:
 
 ---
 
-## 💡 Features
-
-| Feature | Description |
-|:---|:---|
-| Registration | Register a new user and trigger email verification |
-| Email Verification | Must verify email before login |
-| Login | Generate access and refresh tokens securely |
-| Refresh Tokens | Secure refresh of access tokens with validation |
-| Password Reset | Secure email reset flow and password update |
-| Session Invalidation | Invalidate old tokens after password reset |
-| Cooldown Protection | Rate limit resends and resets |
-| CORS & API Key | Origin restrictions and backend protection |
-
----
-
 ## Technologies Used
 
 - **FastAPI** — lightning-fast Python web framework
@@ -110,6 +95,21 @@ uvicorn app.main:app --reload
 
 ---
 
+## 🚀 Deployment
+
+- App and database deployed on [Railway](https://railway.app/).
+- Environment variables configured securely through Railway console.
+
+---
+
+## 📬 Email Requirements
+
+- SendGrid account (free tier works)
+- Verified sender email address or domain
+- Frontend application (optional) to catch email verification redirects
+
+---
+
 ## 📦 Endpoints Overview
 
 ### User Authentication
@@ -132,7 +132,6 @@ uvicorn app.main:app --reload
 
 ---
 
-
 ## Security Highlights
 
 - Passwords securely hashed
@@ -148,13 +147,6 @@ uvicorn app.main:app --reload
 - SendGrid account (free tier works)
 - Verified sender email address or domain
 - Frontend application (optional) to catch email verification redirects
-
----
-
-## 🚀 Deployment
-
-- App and database deployed on [Railway](https://railway.app/).
-- Environment variables configured securely through Railway console.
 
 ---
 
