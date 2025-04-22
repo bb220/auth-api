@@ -142,14 +142,6 @@ uvicorn app.main:app --reload
 
 ---
 
-## 📬 Email Requirements
-
-- SendGrid account (free tier works)
-- Verified sender email address or domain
-- Frontend application (optional) to catch email verification redirects
-
----
-
 ## ✨ Future Improvements
 
 - Session Logging
