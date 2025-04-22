@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, DateTime, func
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, func
+from datetime import datetime
 from .database import Base
 
 class User(Base):
@@ -7,5 +8,9 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
+
+    is_verified = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column (DateTime(timezone=True), onupdate=func.now())
+    verified_at = Column(DateTime(timezone=True), nullable=True)
+    last_password_reset = Column(DateTime(timezone=True), default=datetime.utcnow)
