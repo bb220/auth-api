@@ -73,8 +73,6 @@ pip install -r requirements.txt
 Example `.env`:
 
 ```env
-# .env.example
-
 # Secret Key for JWT signing
 SECRET_KEY=your_super_secret_key_here
 
