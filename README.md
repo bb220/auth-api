@@ -6,14 +6,17 @@
 ![Deployed on Railway](https://img.shields.io/badge/Railway-App-6c4cff?style=for-the-badge&logo=railway)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-A secure authentication API providing:
-- User Registration with Email Verification
-- Login with JWT Access and Refresh Tokens
-- Password Reset Flow via Email
-- Token Invalidation on Password Reset
-- Rate Limiting on Sensitive Email Actions
-- CORS Middleware and API Key Protection
-- Production-grade Scalability
+A lightweight, secure Authentication API built with FastAPI and Python.
+
+## Features
+- User Registration and Login
+- Email Verification
+- Password Reset Functionality
+- Access and Refresh Tokens (JWT-based)
+- API Key Middleware Protection
+- CORS Support
+- Integration with SendGrid (for transactional emails)
+- Integration Test Suite
 
 ---
 
@@ -21,17 +24,15 @@ A secure authentication API providing:
 
 - **FastAPI** — lightning-fast Python web framework
 - **SQLAlchemy** — ORM for database interactions
-- **PostgreSQL** — Production database via Railway
 - **SQLite** — Local development database
-- **Passlib** — Password hashing using bcrypt
-- **Python-Jose** — JWT token creation and validation
-- **SendGrid** — Real email sending service
-- **python-dotenv** — Environment variable management
-- **Uvicorn** — ASGI server for running FastAPI apps
+- **PostgreSQL** — Production database via Railway
+- **SendGrid** — Email sending
+- **Railway** — Deployment platform
+
 
 ---
 
-## Setup and Installation
+## Local Setup and Installation
 
 ### 1. Clone the repository
 
@@ -50,12 +51,10 @@ source venv/bin/activate  # On Windows use: venv\Scripts\activate
 ### 3. Install dependencies
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
-### 4. Create a `.env` file
-
-Example `.env`:
+### 4. Set environment variables (create a .env file):
 
 ```env
 # Secret Key for JWT signing
@@ -80,11 +79,9 @@ FROM_EMAIL_ADDRESS=your_verified_sender@example.com
 API_KEY=your_custom_api_key_here
 ```
 
-✅ In production, `DATABASE_URL` and all env variables are managed securely with Railway.
+✅ In deployed environments, all env variables are managed securely with Railway.
 
----
-
-## Running Locally
+### 5. Run the app:
 
 ```bash
 uvicorn app.main:app --reload
@@ -95,18 +92,24 @@ uvicorn app.main:app --reload
 
 ---
 
-## 🚀 Deployment
+## 🚀 Deploy with [Railway](https://railway.app/)
+Launch hosted environments in minutes through Railway's console.
 
-- App and database deployed on [Railway](https://railway.app/).
-- Environment variables configured securely through Railway console.
+1. Create a project with the GitHub integration.
+2. Set the app's `Custom Start Command`
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+3. Create a Postgres DB
+4. Set the app's environment variables
 
 ---
 
-## 📬 Email Requirements
+## 📬 Enable Email Features
 
-- SendGrid account (free tier works)
-- Verified sender email address or domain
-- Frontend application (optional) to catch email verification redirects
+1. Create a SendGrid account (free tier works)
+2. Verify your sender email address or domain
+3. Create an API Key and include in your environment variables
 
 ---
 
@@ -145,9 +148,7 @@ uvicorn app.main:app --reload
 ## ✨ Future Improvements
 
 - Session Logging
-- Role-based access control (RBAC)
-- Unit and integration test coverage
-  
+- OAuth
 ---
 
 ## License
