@@ -1,6 +1,6 @@
 import os
 
-os.environ["DATABASE_URL"] = "sqlite:///:test_test.db:"
+os.environ["DATABASE_URL"] = "sqlite:///test.db"
 
 import uuid
 import pytest

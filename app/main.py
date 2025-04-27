@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, FastAPI, Depends, HTTPException, status, Body, Request, Security
 from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
+from contextlib import asynccontextmanager
 from sqlalchemy.orm import Session
 
 from app import models, schemas, crud, database, auth
@@ -19,24 +20,28 @@ from app.reset_token_handler import create_password_reset_token, verify_password
 from app.schemas import UserLogin
 from app.verification_token_handler import create_email_verification_token, verify_email_verification_token
 
+
+# --------------------------------------------------
+# Lifespan Setup
+# --------------------------------------------------
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic
+    models.Base.metadata.create_all(bind=database.engine)
+    yield
+    # (Optional shutdown logic later if you need it)
+
 # --------------------------------------------------
 # App Setup
 # --------------------------------------------------
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 add_cors_middleware(app)
 
 API_KEY = os.getenv("API_KEY")
 api_key_header = APIKeyHeader(name="Authorization")
 router = APIRouter()
-
-# --------------------------------------------------
-# Create tables on startup
-# --------------------------------------------------
-
-@app.on_event("startup")
-def on_startup():
-    models.Base.metadata.create_all(bind=database.engine)
 
 # --------------------------------------------------
 # Middleware
