@@ -44,14 +44,6 @@ api_key_header = APIKeyHeader(name="Authorization")
 router = APIRouter()
 
 # --------------------------------------------------
-# Create tables on startup
-# --------------------------------------------------
-
-@app.on_event("startup")
-def on_startup():
-    models.Base.metadata.create_all(bind=database.engine)
-
-# --------------------------------------------------
 # Middleware
 # --------------------------------------------------
 
