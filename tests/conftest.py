@@ -4,6 +4,7 @@ os.environ["DATABASE_URL"] = "sqlite:///test.db"
 
 import uuid
 import pytest
+from unittest.mock import patch
 from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -51,6 +52,14 @@ def auth_headers():
     return {
         "x-api-key": API_KEY
     }
+
+@pytest.fixture(autouse=True)
+def mock_sendgrid_emails():
+    with patch("app.email_sender.send_verification_email") as mock_verify_email, \
+         patch("app.email_sender.send_reset_email") as mock_reset_email:
+        mock_verify_email.return_value = None
+        mock_reset_email.return_value = None
+        yield
 
 @pytest.fixture
 def random_email():
