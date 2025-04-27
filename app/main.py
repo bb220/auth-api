@@ -10,7 +10,8 @@ from app import models, schemas, crud, database, auth
 from app.auth import verify_password, hash_password
 from app.cors import add_cors_middleware
 from app.cooldown_manager import resend_verification_cache, reset_password_cache, check_and_update_cooldown
-from app.database import get_db
+from sqlalchemy.orm import Session
+from app.database import SessionLocal
 from app.email_sender import send_verification_email, send_reset_email
 from app.jwt_handler import create_access_token, create_refresh_token, verify_token
 from app.models import User
@@ -22,14 +23,20 @@ from app.verification_token_handler import create_email_verification_token, veri
 # App Setup
 # --------------------------------------------------
 
-models.Base.metadata.create_all(bind=database.engine)
-
 app = FastAPI()
 add_cors_middleware(app)
 
 API_KEY = os.getenv("API_KEY")
 api_key_header = APIKeyHeader(name="Authorization")
 router = APIRouter()
+
+# --------------------------------------------------
+# Create tables on startup
+# --------------------------------------------------
+
+@app.on_event("startup")
+def on_startup():
+    models.Base.metadata.create_all(bind=database.engine)
 
 # --------------------------------------------------
 # Middleware
@@ -51,7 +58,7 @@ async def verify_api_key(request: Request, call_next):
 # --------------------------------------------------
 
 def get_db():
-    db = database.SessionLocal()
+    db = SessionLocal()
     try:
         yield db
     finally:
