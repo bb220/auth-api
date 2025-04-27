@@ -1,9 +1,13 @@
 from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
+if os.getenv("RAILWAY_ENVIRONMENT") is None:
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"

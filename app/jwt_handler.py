@@ -1,16 +1,20 @@
 import os
+
+if os.getenv("RAILWAY_ENVIRONMENT") is None:
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass
+
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
-from dotenv import load_dotenv
 
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import User
-
-
-load_dotenv()
 
 # Secret key to encode/decode JWTs (use a real secret in production!)
 SECRET_KEY = os.getenv("SECRET_KEY")
