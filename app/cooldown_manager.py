@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
 
 # Cooldown caches
@@ -9,7 +9,7 @@ def clean_expired_cache(cache: dict, cooldown_period: timedelta):
     """
     Removes expired cooldown entries from the provided cache.
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     expired_keys = [email for email, timestamp in cache.items() if now - timestamp > cooldown_period]
     for email in expired_keys:
         del cache[email]
@@ -21,7 +21,7 @@ def check_and_update_cooldown(cache: dict, email: str, cooldown_period: timedelt
     Raises:
         HTTPException (429) if cooldown is still active.
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     # Clean old entries
     clean_expired_cache(cache, cooldown_period)

@@ -1,0 +1,21 @@
+# Ignore local test files and folders
+tests/
+
+# Ignore dev-only dependency files
+requirements-dev.txt
+pytest.ini
+
+# Just to be extra safe
+.coverage
+htmlcov/
+coverage.xml
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local environment files
+.env
+.env.*
