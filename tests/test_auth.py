@@ -1,5 +1,3 @@
-# tests/test_auth.py
-
 def test_register_user(client, auth_headers, random_email):
     response = client.post("/register", json={
         "email": random_email,
@@ -48,6 +46,16 @@ def test_login_invalid_password(client, auth_headers, random_email):
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid credentials"
 
+def test_login_email_not_found(client, auth_headers):
+    response = client.post("/login", json={
+        "email": "nonexistentuser@example.com",
+        "password": "DoesNotMatter123"
+    }, headers=auth_headers)
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid credentials"
+
+
 def test_login_successful(client, auth_headers, random_email):
     from app.verification_token_handler import create_email_verification_token
 
@@ -85,3 +93,33 @@ def test_protected_route_with_invalid_token(client, auth_headers):
     response = client.get("/protected", headers=invalid_headers)
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid or expired token."
+
+def test_protected_route_with_valid_token(client, auth_headers, random_email):
+    from app.verification_token_handler import create_email_verification_token
+
+    # 1. Register user
+    client.post("/register", json={
+        "email": random_email,
+        "password": "SecurePassword123"
+    }, headers=auth_headers)
+
+    # 2. Verify user
+    token = create_email_verification_token(random_email)
+    client.get(f"/verify-email?token={token}", headers=auth_headers)
+
+    # 3. Login to get access token
+    login = client.post("/login", json={
+        "email": random_email,
+        "password": "SecurePassword123"
+    }, headers=auth_headers)
+    tokens = login.json()
+
+    # 4. Access protected route with valid token
+    protected_headers = {
+        **auth_headers,
+        "Authorization": f"Bearer {tokens['access_token']}"
+    }
+    protected_response = client.get("/protected", headers=protected_headers)
+
+    assert protected_response.status_code == 200
+    assert "Welcome user" in protected_response.json()["message"]
