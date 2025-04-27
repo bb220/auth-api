@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, FastAPI, Depends, HTTPException, status, Body, Request, Security
 from fastapi.responses import JSONResponse
@@ -86,7 +86,7 @@ def verify_email(token: str, db: Session = Depends(get_db)):
         return {"message": "Account already verified."}
 
     user.is_verified = True
-    user.verified_at = datetime.utcnow()
+    user.verified_at = datetime.now(timezone.utc)
     db.commit()
 
     return {"message": "Email verified successfully. You can now log in."}
@@ -202,7 +202,7 @@ def reset_password(token: str, new_password: str, db: Session = Depends(get_db))
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
 
     user.hashed_password = hash_password(new_password)
-    user.last_password_reset = datetime.utcnow()
+    user.last_password_reset = datetime.now(timezone.utc)
     db.commit()
 
     return {"message": "Password reset successful."}
