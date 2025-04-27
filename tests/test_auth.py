@@ -1,3 +1,5 @@
+from unittest.mock import patch, ANY
+
 def test_access_without_api_key(client):
     response = client.get("/register")  # No headers
 
@@ -12,6 +14,16 @@ def test_register_user(client, auth_headers, random_email):
     assert response.status_code == 200
     data = response.json()
     assert "email" in data
+
+def test_register_sends_verification_email(client, auth_headers, random_email):
+    with patch("app.main.send_verification_email") as mock_send_email:
+        response = client.post("/register", json={
+            "email": random_email,
+            "password": "Test1234"
+        }, headers=auth_headers)
+
+        assert response.status_code == 200, response.json()
+        mock_send_email.assert_called_once_with(random_email, ANY)
 
 def test_register_duplicate_email(client, auth_headers, random_email):
     client.post("/register", json={
