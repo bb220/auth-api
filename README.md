@@ -136,6 +136,29 @@ uvicorn app.main:app --host 0.0.0.0 --port $PORT
 
 ---
 
+## 📈 Event Tracking
+
+This API includes built-in **event tracking** for critical user actions.  
+Events are recorded into the `events` database table for monitoring, reporting, and analysis.
+
+### Tracked Events
+
+| Event Name | Trigger |
+|:-----------|:--------|
+| `user_registered` | After successful user registration |
+| `user_login_success` | After successful user login |
+| `user_login_failure` | After failed user login attempt |
+| `password_reset_requested` | When a password reset is requested |
+| `password_reset_completed` | After a successful password reset |
+| `email_verified` | After user successfully verifies their email |
+| `protected_route_accessed` | When an authenticated user accesses a protected route |
+
+### Adding New Events
+When adding new routes or features, developers should:
+- Identify key success and/or failure points.
+- Use the record_event utility to capture meaningful events.
+- Include useful metadata where relevant.
+
 ## Security Highlights
 
 - Passwords securely hashed
