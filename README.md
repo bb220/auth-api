@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/launcher-logo.png" alt="Launcher User Service Logo" width="200" />
+  <img src="assets/launcher-center-logo.png" alt="Launcher User Service Logo" width="180" />
 </p>
 
 # Launcher User Service
