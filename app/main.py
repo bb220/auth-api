@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas, crud, database, auth
 from app.auth import verify_password, hash_password
+from app.utils.event_logger import record_event
 from app.cors import add_cors_middleware
 from app.cooldown_manager import resend_verification_cache, reset_password_cache, check_and_update_cooldown
 from sqlalchemy.orm import Session
@@ -82,6 +83,13 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     token = create_email_verification_token(new_user.email)
     send_verification_email(new_user.email, token)
+    print(f"Verification token for {new_user.email}: {token}")
+
+    record_event(
+        event_name="user_registered",
+        user_id=new_user.id,
+        metadata={"email": new_user.email}
+    )
 
     return new_user
 
@@ -133,8 +141,16 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(models.User.email == user_credentials.email).first()
 
     if not user or not verify_password(user_credentials.password, user.hashed_password):
+        record_event(
+            event_name="user_login_failure",
+            metadata={"email": user_credentials.email, "reason": "Invalid credentials"}
+        )
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     if not user.is_verified:
+        record_event(
+            event_name="user_login_failure",
+            metadata={"email": user_credentials.email, "reason": "Unverified email"}
+        )
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Please verify your email before logging in.")
 
     token_data = {
@@ -144,6 +160,12 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
 
     access_token = create_access_token(token_data)
     refresh_token = create_refresh_token(token_data)
+
+    record_event(
+        event_name="user_login_success",
+        user_id=user.id,
+        metadata={"email": user.email}
+    )
 
     return {
         "access_token": access_token,
@@ -195,11 +217,20 @@ def request_password_reset(email: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == email).first()
 
     if not user:
+        record_event(
+            event_name="password_reset_requested",
+            metadata={"email": email, "user_found": False}
+        )
         return {"message": "If the email is associated with an account, a reset link has been sent."}
 
     reset_token = create_password_reset_token(user.email)
     reset_link = f"https://yourfrontend.com/reset-password?token={reset_token}"
     send_reset_email(user.email, reset_link)
+    record_event(
+            event_name="password_reset_requested",
+            user_id=user.id,
+            metadata={"email": user.email}
+        )
 
     return {"message": "If the email is associated with an account, a reset link has been sent."}
 

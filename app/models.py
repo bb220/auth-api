@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, func
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, func, Text, JSON
 from datetime import datetime, timezone
 from .database import Base
 
@@ -17,3 +17,12 @@ class User(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc)
     )
+
+class Event(Base):
+    __tablename__ = "events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_name = Column(Text, nullable=False)
+    user_id = Column(Integer, nullable=True)
+    event_metadata = Column(JSON, nullable=True, name="metadata")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
