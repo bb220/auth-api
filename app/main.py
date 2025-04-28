@@ -109,6 +109,12 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     user.verified_at = datetime.now(timezone.utc)
     db.commit()
 
+    record_event(
+        event_name="email_verified",
+        user_id=user.id,
+        metadata={"email": user.email}
+    )
+
     return {"message": "Email verified successfully. You can now log in."}
 
 @app.post("/resend-verification-email")
@@ -226,6 +232,7 @@ def request_password_reset(email: str, db: Session = Depends(get_db)):
     reset_token = create_password_reset_token(user.email)
     reset_link = f"https://yourfrontend.com/reset-password?token={reset_token}"
     send_reset_email(user.email, reset_link)
+    print(reset_token)
     record_event(
             event_name="password_reset_requested",
             user_id=user.id,
@@ -248,6 +255,12 @@ def reset_password(token: str, new_password: str, db: Session = Depends(get_db))
     user.last_password_reset = datetime.now(timezone.utc)
     db.commit()
 
+    record_event(
+        event_name="password_reset_completed",
+        user_id=user.id,
+        metadata={"email": user.email}
+    )
+
     return {"message": "Password reset successful."}
 
 # --------------------------------------------------
@@ -265,6 +278,11 @@ def protected_route(token: str = Security(api_key_header), db: Session = Depends
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
     user_id = payload.get("user_id")
+    record_event(
+        event_name="protected_route_accessed",
+        user_id=user_id,
+        metadata={"endpoint": "/protected"}
+    )
     return {"message": f"Welcome user {user_id}!"}
 
 # --------------------------------------------------
