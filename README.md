@@ -1,4 +1,4 @@
-# Auth API
+# Launchpad-UserService
 
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 ![Python](https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge&logo=python)
@@ -6,17 +6,20 @@
 ![Deployed on Railway](https://img.shields.io/badge/Railway-App-6c4cff?style=for-the-badge&logo=railway)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-A lightweight, secure Authentication API built with FastAPI and Python.
+A lean, secure, and easily extendable user service for technical founders who want to move fast and build products — exposing a simple, powerful API.
 
-## Features
-- User Registration and Login
-- Email Verification
-- Password Reset Functionality
-- Access and Refresh Tokens (JWT-based)
-- API Key Middleware Protection
-- CORS Support
-- Integration with SendGrid (for transactional emails)
-- Integration Test Suite
+Built with FastAPI and SQLAlchemy, this service provides essential user management functionality out of the box and is ready to deploy. Designed for rapid development and easy extension, it helps technical founders go from idea to launch with minimal backend overhead.
+
+Lean enough for your MVP. Strong enough to scale with you.
+
+## Key Features
+
+- 🔐 Secure user registration, login, and token-based authentication
+- 📨 Built-in email verification and password reset flows
+- ⚡ Asynchronous background tasks for fast user experiences
+- 🛡️ API key security and protected route examples
+- 📊 Event tracking for analytics and user behavior insights
+- 🛠️ Easily extendable with additional services (OAuth, profile management, roles)
 
 ---
 
@@ -25,10 +28,9 @@ A lightweight, secure Authentication API built with FastAPI and Python.
 - **FastAPI** — lightning-fast Python web framework
 - **SQLAlchemy** — ORM for database interactions
 - **SQLite** — Local development database
-- **PostgreSQL** — Production database via Railway
-- **SendGrid** — Email sending
+- **PostgreSQL** — Production database
+- **SendGrid** — Email platform
 - **Railway** — Deployment platform
-
 
 ---
 
@@ -135,6 +137,29 @@ uvicorn app.main:app --host 0.0.0.0 --port $PORT
 
 ---
 
+## 📈 Event Tracking
+
+This API includes built-in **event tracking** for critical user actions.  
+Events are recorded into the `events` database table for monitoring, reporting, and analysis.
+
+### Tracked Events
+
+| Event Name | Trigger |
+|:-----------|:--------|
+| `user_registered` | After successful user registration |
+| `user_login_success` | After successful user login |
+| `user_login_failure` | After failed user login attempt |
+| `password_reset_requested` | When a password reset is requested |
+| `password_reset_completed` | After a successful password reset |
+| `email_verified` | After user successfully verifies their email |
+| `protected_route_accessed` | When an authenticated user accesses a protected route |
+
+### Adding New Events
+When adding new routes or features, developers should:
+- Identify key success and/or failure points.
+- Use the record_event utility to capture meaningful events.
+- Include useful metadata where relevant.
+
 ## Security Highlights
 
 - Passwords securely hashed
@@ -147,8 +172,7 @@ uvicorn app.main:app --host 0.0.0.0 --port $PORT
 
 ## ✨ Future Improvements
 
-- Session Logging
-- OAuth
+- OAuth integrations
 ---
 
 ## License

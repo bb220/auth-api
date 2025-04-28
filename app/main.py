@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, FastAPI, Depends, HTTPException, status, Body, Request, Security
+from fastapi import APIRouter, FastAPI, Depends, HTTPException, status, Body, Request, Security, BackgroundTasks
 from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
 from contextlib import asynccontextmanager
@@ -9,9 +9,9 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas, crud, database, auth
 from app.auth import verify_password, hash_password
+from app.utils.event_logger import mask_email, record_event
 from app.cors import add_cors_middleware
 from app.cooldown_manager import resend_verification_cache, reset_password_cache, check_and_update_cooldown
-from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.email_sender import send_verification_email, send_reset_email
 from app.jwt_handler import create_access_token, create_refresh_token, verify_token
@@ -20,21 +20,10 @@ from app.reset_token_handler import create_password_reset_token, verify_password
 from app.schemas import UserLogin
 from app.verification_token_handler import create_email_verification_token, verify_email_verification_token
 
-
-# --------------------------------------------------
-# Lifespan Setup
-# --------------------------------------------------
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup logic
     models.Base.metadata.create_all(bind=database.engine)
     yield
-    # (Optional shutdown logic later if you need it)
-
-# --------------------------------------------------
-# App Setup
-# --------------------------------------------------
 
 app = FastAPI(lifespan=lifespan)
 add_cors_middleware(app)
@@ -42,10 +31,6 @@ add_cors_middleware(app)
 API_KEY = os.getenv("API_KEY")
 api_key_header = APIKeyHeader(name="Authorization")
 router = APIRouter()
-
-# --------------------------------------------------
-# Middleware
-# --------------------------------------------------
 
 @app.middleware("http")
 async def verify_api_key(request: Request, call_next):
@@ -58,10 +43,6 @@ async def verify_api_key(request: Request, call_next):
 
     return await call_next(request)
 
-# --------------------------------------------------
-# Utility
-# --------------------------------------------------
-
 def get_db():
     db = SessionLocal()
     try:
@@ -69,12 +50,8 @@ def get_db():
     finally:
         db.close()
 
-# --------------------------------------------------
-# Authentication and User Management Routes
-# --------------------------------------------------
-
 @app.post("/register", response_model=schemas.UserResponse)
-def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def register(user: schemas.UserCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     if crud.get_user_by_email(db, user.email):
         raise HTTPException(status_code=400, detail="Email already registered")
     
@@ -82,11 +59,19 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     token = create_email_verification_token(new_user.email)
     send_verification_email(new_user.email, token)
+    print(f"Verification token for {new_user.email}: {token}")
+
+    background_tasks.add_task(
+        record_event,
+        "user_registered",
+        new_user.id,
+        {"email": mask_email(new_user.email)}
+    )
 
     return new_user
 
 @app.get("/verify-email")
-def verify_email(token: str, db: Session = Depends(get_db)):
+def verify_email(token: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     email = verify_email_verification_token(token)
     if email is None:
         raise HTTPException(status_code=400, detail="Invalid or expired token.")
@@ -101,13 +86,19 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     user.verified_at = datetime.now(timezone.utc)
     db.commit()
 
+    background_tasks.add_task(
+        record_event,
+        "email_verified",
+        user.id,
+        {"email": mask_email(user.email)}
+    )
+
     return {"message": "Email verified successfully. You can now log in."}
 
 @app.post("/resend-verification-email")
 def resend_verification_email(email: str, db: Session = Depends(get_db)):
     cooldown_period = timedelta(minutes=5)
 
-    # Apply cooldown
     check_and_update_cooldown(
         cache=resend_verification_cache,
         email=email,
@@ -129,12 +120,23 @@ def resend_verification_email(email: str, db: Session = Depends(get_db)):
     return {"message": "Verification email resent. Please check your inbox."}
 
 @app.post("/login")
-def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
+def login(user_credentials: UserLogin, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     user = db.query(User).filter(models.User.email == user_credentials.email).first()
 
     if not user or not verify_password(user_credentials.password, user.hashed_password):
+        record_event(
+            "user_login_failure",
+            None,
+            {"email": mask_email(user_credentials.email), "reason": "Invalid credentials"}
+        )
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
     if not user.is_verified:
+        record_event(
+            "user_login_failure",
+            None,
+            {"email": mask_email(user_credentials.email), "reason": "Unverified email"}
+        )
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Please verify your email before logging in.")
 
     token_data = {
@@ -144,6 +146,13 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
 
     access_token = create_access_token(token_data)
     refresh_token = create_refresh_token(token_data)
+
+    background_tasks.add_task(
+        record_event,
+        "user_login_success",
+        user.id,
+        {"email": mask_email(user.email)}
+    )
 
     return {
         "access_token": access_token,
@@ -159,7 +168,6 @@ def refresh_token(refresh_token: str = Body(...), db: Session = Depends(get_db))
 
     user_id = payload.get("user_id")
 
-    # Re-fetch the user from the database
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
@@ -176,15 +184,10 @@ def refresh_token(refresh_token: str = Body(...), db: Session = Depends(get_db))
         "token_type": "bearer"
     }
 
-# --------------------------------------------------
-# Password Reset Routes
-# --------------------------------------------------
-
 @router.post("/request-password-reset")
-def request_password_reset(email: str, db: Session = Depends(get_db)):
+def request_password_reset(email: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     cooldown_period = timedelta(minutes=1)
 
-    # Apply cooldown
     check_and_update_cooldown(
         cache=reset_password_cache,
         email=email,
@@ -195,16 +198,29 @@ def request_password_reset(email: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == email).first()
 
     if not user:
+        record_event(
+            "password_reset_requested",
+            None,
+            {"email": mask_email(email), "user_found": False}
+        )
         return {"message": "If the email is associated with an account, a reset link has been sent."}
 
     reset_token = create_password_reset_token(user.email)
     reset_link = f"https://yourfrontend.com/reset-password?token={reset_token}"
     send_reset_email(user.email, reset_link)
+    print(reset_token)
+
+    background_tasks.add_task(
+        record_event,
+        "password_reset_requested",
+        user.id,
+        {"email": mask_email(user.email)}
+    )
 
     return {"message": "If the email is associated with an account, a reset link has been sent."}
 
 @router.post("/reset-password")
-def reset_password(token: str, new_password: str, db: Session = Depends(get_db)):
+def reset_password(token: str, new_password: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     email = verify_password_reset_token(token)
     if email is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired password reset token.")
@@ -217,14 +233,17 @@ def reset_password(token: str, new_password: str, db: Session = Depends(get_db))
     user.last_password_reset = datetime.now(timezone.utc)
     db.commit()
 
+    background_tasks.add_task(
+        record_event,
+        "password_reset_completed",
+        user.id,
+        {"email": mask_email(user.email)}
+    )
+
     return {"message": "Password reset successful."}
 
-# --------------------------------------------------
-# Protected Route Example
-# --------------------------------------------------
-
 @app.get("/protected")
-def protected_route(token: str = Security(api_key_header), db: Session = Depends(get_db)):
+def protected_route(background_tasks: BackgroundTasks, token: str = Security(api_key_header), db: Session = Depends(get_db)):
     if not token.startswith("Bearer "):
         raise HTTPException(status_code=403, detail="Invalid authorization header format")
 
@@ -234,10 +253,14 @@ def protected_route(token: str = Security(api_key_header), db: Session = Depends
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
     user_id = payload.get("user_id")
-    return {"message": f"Welcome user {user_id}!"}
 
-# --------------------------------------------------
-# Include Router
-# --------------------------------------------------
+    background_tasks.add_task(
+        record_event,
+        "protected_route_accessed",
+        user_id,
+        {"endpoint": "/protected"}
+    )
+
+    return {"message": f"Welcome user {user_id}!"}
 
 app.include_router(router)
