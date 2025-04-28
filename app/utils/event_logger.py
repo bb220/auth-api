@@ -11,3 +11,11 @@ def record_event(event_name: str, user_id: int = None, metadata: dict = None):
     )
     db.add(event)
     db.commit()
+
+def mask_email(email: str) -> str:
+    if not email or "@" not in email:
+        return ""
+    local, domain = email.split("@")
+    if len(local) > 1:
+        return local[0] + "***@" + domain
+    return "***@" + domain
