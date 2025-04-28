@@ -1,4 +1,4 @@
-# Auth API
+# Launchpad-UserService
 
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 ![Python](https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge&logo=python)
@@ -6,18 +6,20 @@
 ![Deployed on Railway](https://img.shields.io/badge/Railway-App-6c4cff?style=for-the-badge&logo=railway)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-A lightweight, extensible, and secure Authentication API built with FastAPI and Python.
+A lean, secure, and easily extendable user service for technical founders who want to move fast and build products — exposing a simple, powerful API.
 
-## Features
-- User Registration and Login
-- Email Verification
-- Password Reset Functionality
-- Access and Refresh Tokens (JWT-based)
-- API Key Middleware Protection
-- CORS Support
-- Integration with SendGrid (for transactional emails)
-- Integration Test Suite
-- Event Tracking
+Built with FastAPI and SQLAlchemy, this service provides essential user management functionality out of the box and is ready to deploy. Designed for rapid development and easy extension, it helps technical founders go from idea to launch with minimal backend overhead.
+
+Lean enough for your MVP. Strong enough to scale with you.
+
+## Key Features
+
+- 🔐 Secure user registration, login, and token-based authentication
+- 📨 Built-in email verification and password reset flows
+- ⚡ Asynchronous background tasks for fast user experiences
+- 🛡️ API key security and protected route examples
+- 📊 Event tracking for analytics and user behavior insights
+- 🛠️ Easily extendable with additional services (OAuth, profile management, roles)
 
 ---
 
@@ -26,10 +28,9 @@ A lightweight, extensible, and secure Authentication API built with FastAPI and 
 - **FastAPI** — lightning-fast Python web framework
 - **SQLAlchemy** — ORM for database interactions
 - **SQLite** — Local development database
-- **PostgreSQL** — Production database via Railway
-- **SendGrid** — Email sending
+- **PostgreSQL** — Production database
+- **SendGrid** — Email platform
 - **Railway** — Deployment platform
-
 
 ---
 
