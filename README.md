@@ -6,7 +6,7 @@
 ![Deployed on Railway](https://img.shields.io/badge/Railway-App-6c4cff?style=for-the-badge&logo=railway)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-A lightweight, secure Authentication API built with FastAPI and Python.
+A lightweight, extensible, and secure Authentication API built with FastAPI and Python.
 
 ## Features
 - User Registration and Login
@@ -17,6 +17,7 @@ A lightweight, secure Authentication API built with FastAPI and Python.
 - CORS Support
 - Integration with SendGrid (for transactional emails)
 - Integration Test Suite
+- Event Tracking
 
 ---
 
@@ -147,8 +148,7 @@ uvicorn app.main:app --host 0.0.0.0 --port $PORT
 
 ## ✨ Future Improvements
 
-- Session Logging
-- OAuth
+- OAuth integrations
 ---
 
 ## License
