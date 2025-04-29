@@ -28,20 +28,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 add_cors_middleware(app)
 
-API_KEY = os.getenv("API_KEY")
 api_key_header = APIKeyHeader(name="Authorization")
 router = APIRouter()
-
-@app.middleware("http")
-async def verify_api_key(request: Request, call_next):
-    if request.url.path in ["/openapi.json", "/docs"]:
-        return await call_next(request)
-
-    api_key = request.headers.get("x-api-key")
-    if api_key != API_KEY:
-        return JSONResponse(status_code=403, content={"detail": "Forbidden. Invalid or missing API Key."})
-
-    return await call_next(request)
 
 def get_db():
     db = SessionLocal()
