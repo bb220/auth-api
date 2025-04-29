@@ -6,6 +6,10 @@ from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
 from contextlib import asynccontextmanager
 from sqlalchemy.orm import Session
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 from app import models, schemas, crud, database, auth
 from app.auth import verify_password, hash_password
@@ -26,22 +30,14 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 add_cors_middleware(app)
 
-API_KEY = os.getenv("API_KEY")
 api_key_header = APIKeyHeader(name="Authorization")
 router = APIRouter()
-
-@app.middleware("http")
-async def verify_api_key(request: Request, call_next):
-    if request.url.path in ["/openapi.json", "/docs"]:
-        return await call_next(request)
-
-    api_key = request.headers.get("x-api-key")
-    if api_key != API_KEY:
-        return JSONResponse(status_code=403, content={"detail": "Forbidden. Invalid or missing API Key."})
-
-    return await call_next(request)
 
 def get_db():
     db = SessionLocal()
@@ -50,8 +46,9 @@ def get_db():
     finally:
         db.close()
 
+@limiter.limit("15/hour")
 @app.post("/register", response_model=schemas.UserResponse)
-def register(user: schemas.UserCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def register(request: Request, user: schemas.UserCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     if crud.get_user_by_email(db, user.email):
         raise HTTPException(status_code=400, detail="Email already registered")
     
@@ -70,8 +67,9 @@ def register(user: schemas.UserCreate, background_tasks: BackgroundTasks, db: Se
 
     return new_user
 
+@limiter.limit("10/minute")
 @app.get("/verify-email")
-def verify_email(token: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def verify_email(request: Request, token: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     email = verify_email_verification_token(token)
     if email is None:
         raise HTTPException(status_code=400, detail="Invalid or expired token.")
@@ -95,8 +93,9 @@ def verify_email(token: str, background_tasks: BackgroundTasks, db: Session = De
 
     return {"message": "Email verified successfully. You can now log in."}
 
+@limiter.limit("3/minute")
 @app.post("/resend-verification-email")
-def resend_verification_email(email: str, db: Session = Depends(get_db)):
+def resend_verification_email(request: Request, email: str, db: Session = Depends(get_db)):
     cooldown_period = timedelta(minutes=5)
 
     check_and_update_cooldown(
@@ -119,8 +118,9 @@ def resend_verification_email(email: str, db: Session = Depends(get_db)):
 
     return {"message": "Verification email resent. Please check your inbox."}
 
+@limiter.limit("5/minute")
 @app.post("/login")
-def login(user_credentials: UserLogin, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def login(request: Request, user_credentials: UserLogin, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     user = db.query(User).filter(models.User.email == user_credentials.email).first()
 
     if not user or not verify_password(user_credentials.password, user.hashed_password):
@@ -160,8 +160,9 @@ def login(user_credentials: UserLogin, background_tasks: BackgroundTasks, db: Se
         "token_type": "bearer"
     }
 
+@limiter.limit("30/minute")
 @app.post("/refresh")
-def refresh_token(refresh_token: str = Body(...), db: Session = Depends(get_db)):
+def refresh_token(request: Request, refresh_token: str = Body(...), db: Session = Depends(get_db)):
     payload = verify_token(refresh_token, db)
     if not payload:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
@@ -184,8 +185,9 @@ def refresh_token(refresh_token: str = Body(...), db: Session = Depends(get_db))
         "token_type": "bearer"
     }
 
+@limiter.limit("3/minute")
 @router.post("/request-password-reset")
-def request_password_reset(email: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def request_password_reset(request: Request, email: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     cooldown_period = timedelta(minutes=1)
 
     check_and_update_cooldown(
@@ -219,8 +221,9 @@ def request_password_reset(email: str, background_tasks: BackgroundTasks, db: Se
 
     return {"message": "If the email is associated with an account, a reset link has been sent."}
 
+@limiter.limit("5/minute")
 @router.post("/reset-password")
-def reset_password(token: str, new_password: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def reset_password(request: Request, token: str, new_password: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     email = verify_password_reset_token(token)
     if email is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired password reset token.")
@@ -242,8 +245,9 @@ def reset_password(token: str, new_password: str, background_tasks: BackgroundTa
 
     return {"message": "Password reset successful."}
 
+@limiter.limit("60/minute")
 @app.get("/protected")
-def protected_route(background_tasks: BackgroundTasks, token: str = Security(api_key_header), db: Session = Depends(get_db)):
+def protected_route(request: Request, background_tasks: BackgroundTasks, token: str = Security(api_key_header), db: Session = Depends(get_db)):
     if not token.startswith("Bearer "):
         raise HTTPException(status_code=403, detail="Invalid authorization header format")
 

@@ -21,7 +21,7 @@ Lean enough for your MVP. Strong enough to scale with you.
 - 🔐 Secure user registration, login, and token-based authentication
 - 📨 Built-in email verification and password reset flows
 - ⚡ Asynchronous background tasks for fast user experiences
-- 🛡️ API key security and protected route examples
+- 🛡️ JWT security and protected route examples
 - 📊 Event tracking for analytics and user behavior insights
 - 🛠️ Easily extendable with additional services (OAuth, profile management, roles)
 
@@ -80,9 +80,6 @@ SENDGRID_API_KEY=your_sendgrid_api_key_here
 
 # Verified sender email (must match your SendGrid authenticated domain)
 FROM_EMAIL_ADDRESS=your_verified_sender@example.com
-
-# API Key for protecting backend endpoints (x-api-key header)
-API_KEY=your_custom_api_key_here
 ```
 
 ✅ In deployed environments, all env variables are managed securely with Railway.
@@ -169,7 +166,6 @@ When adding new routes or features, developers should:
 - Passwords securely hashed
 - Access and Refresh tokens expire upon password changes
 - CORS only allows trusted frontend origins
-- API Key required for all non-doc routes
 - Cooldown/rate limit to protect sensitive email actions
 
 ---
