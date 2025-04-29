@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # Define your trusted origins
 origins = [
     "http://localhost:3000",          # Local frontend dev
-    #"https://your-frontend.com",       # Production frontend domain
+    "https://kzmpbbzohp24vzzlcifq.lite.vusercontent.net/",       # Production frontend domain
 ]
 
 def add_cors_middleware(app):
