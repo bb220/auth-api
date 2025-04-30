@@ -16,3 +16,8 @@ class UserResponse(BaseModel):
 
 class PasswordResetRequest(BaseModel):
     email: EmailStr
+
+
+class ResetPassword(BaseModel):
+    token: str
+    new_password: str
