@@ -21,7 +21,7 @@ from app.email_sender import send_verification_email, send_reset_email
 from app.jwt_handler import create_access_token, create_refresh_token, verify_token
 from app.models import User
 from app.reset_token_handler import create_password_reset_token, verify_password_reset_token
-from app.schemas import PasswordResetRequest, UserLogin
+from app.schemas import PasswordResetRequest, ResetPassword, UserLogin
 from app.verification_token_handler import create_email_verification_token, verify_email_verification_token
 
 @asynccontextmanager
@@ -229,8 +229,13 @@ def request_password_reset(
 
 @limiter.limit("5/minute")
 @router.post("/reset-password")
-def reset_password(request: Request, token: str, new_password: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    email = verify_password_reset_token(token)
+def reset_password(
+    request: Request,
+    payload: ResetPassword,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    email = verify_password_reset_token(payload.token)
     if email is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired password reset token.")
 
@@ -238,7 +243,7 @@ def reset_password(request: Request, token: str, new_password: str, background_t
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
 
-    user.hashed_password = hash_password(new_password)
+    user.hashed_password = hash_password(payload.new_password)
     user.last_password_reset = datetime.now(timezone.utc)
     db.commit()
 
