@@ -21,7 +21,7 @@ from app.email_sender import send_verification_email, send_reset_email
 from app.jwt_handler import create_access_token, create_refresh_token, verify_token
 from app.models import User
 from app.reset_token_handler import create_password_reset_token, verify_password_reset_token
-from app.schemas import UserLogin
+from app.schemas import PasswordResetRequest, UserLogin
 from app.verification_token_handler import create_email_verification_token, verify_email_verification_token
 
 @asynccontextmanager
@@ -187,7 +187,13 @@ def refresh_token(request: Request, refresh_token: str = Body(...), db: Session 
 
 @limiter.limit("3/minute")
 @router.post("/request-password-reset")
-def request_password_reset(request: Request, email: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def request_password_reset(
+    request: Request,
+    payload: PasswordResetRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    email = payload.email
     cooldown_period = timedelta(minutes=1)
 
     check_and_update_cooldown(

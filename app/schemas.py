@@ -13,3 +13,6 @@ class UserResponse(BaseModel):
     email: EmailStr
 
     model_config = ConfigDict(from_attributes=True)
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
