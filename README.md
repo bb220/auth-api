@@ -21,7 +21,7 @@ Lean enough for your MVP. Strong enough to scale with you.
 - 🔐 Secure user registration, login, and token-based authentication
 - 📨 Built-in email verification and password reset flows
 - ⚡ Asynchronous background tasks for fast user experiences
-- 🛡️ JWT security and protected route examples
+- 🛡️ Protected route examples
 - 📊 Event tracking for analytics and user behavior insights
 - 🛠️ Easily extendable with additional services (OAuth, profile management, roles)
 
