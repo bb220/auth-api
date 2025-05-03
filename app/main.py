@@ -21,7 +21,7 @@ from app.email_sender import send_verification_email, send_reset_email
 from app.jwt_handler import create_access_token, create_refresh_token, verify_token
 from app.models import User
 from app.reset_token_handler import create_password_reset_token, verify_password_reset_token
-from app.schemas import PasswordResetRequest, ResetPassword, UserLogin
+from app.schemas import PasswordResetRequest, ResetPassword, UserLogin, EmailRequest
 from app.verification_token_handler import create_email_verification_token, verify_email_verification_token
 
 @asynccontextmanager
@@ -95,17 +95,17 @@ def verify_email(request: Request, token: str, background_tasks: BackgroundTasks
 
 @limiter.limit("3/minute")
 @app.post("/resend-verification-email")
-def resend_verification_email(request: Request, email: str, db: Session = Depends(get_db)):
+def resend_verification_email(request: Request, email_request: EmailRequest, db: Session = Depends(get_db)):
     cooldown_period = timedelta(minutes=5)
 
     check_and_update_cooldown(
         cache=resend_verification_cache,
-        email=email,
+        email=email_request.email,
         cooldown_period=cooldown_period,
         error_message="Please wait before requesting another verification email."
     )
 
-    user = db.query(User).filter(User.email == email).first()
+    user = db.query(User).filter(User.email == email_request.email).first()
 
     if not user:
         return {"message": "If an account with that email exists, a verification email has been resent."}
