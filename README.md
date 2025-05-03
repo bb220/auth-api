@@ -80,6 +80,9 @@ SENDGRID_API_KEY=your_sendgrid_api_key_here
 
 # Verified sender email (must match your SendGrid authenticated domain)
 FROM_EMAIL_ADDRESS=your_verified_sender@example.com
+
+# Frontend domain used for links in the emails
+FRONTEND_DOMAIN=https://yourfrontend.com
 ```
 
 ✅ In deployed environments, all env variables are managed securely with Railway.
