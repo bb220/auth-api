@@ -25,7 +25,7 @@ def test_resend_verification_email(client, auth_headers, random_email):
     assert register.status_code == 200
 
     # 2. Request to resend
-    resend = client.post("/resend-verification-email", params={"email": random_email}, headers=auth_headers)
+    resend = client.post("/resend-verification-email", json={"email": random_email}, headers=auth_headers)
     assert resend.status_code == 200
     assert "verification email" in resend.json()["message"].lower()
 

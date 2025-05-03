@@ -10,9 +10,9 @@ if os.getenv("RAILWAY_ENVIRONMENT") is None:
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
-
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 FROM_EMAIL = os.getenv("FROM_EMAIL")  # e.g., your verified SendGrid sender email
+FRONTEND_DOMAIN = os.getenv("FRONTEND_DOMAIN")
 
 def send_reset_email(to_email: str, reset_link: str):
     message = Mail(
@@ -33,7 +33,7 @@ def send_reset_email(to_email: str, reset_link: str):
         print(f"Error sending email: {e}")
 
 def send_verification_email(to_email: str, token: str):
-    verification_link = f"https://yourfrontend.com/verify-email?token={token}"
+    verification_link = f"{FRONTEND_DOMAIN}/verify-email?token={token}"
 
     message = Mail(
         from_email=FROM_EMAIL,
