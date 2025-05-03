@@ -175,6 +175,7 @@ When adding new routes or features, developers should:
 
 ## ✨ Future Improvements
 
+- HttpOnly cookies for refresh token
 - OAuth integrations
 ---
 
