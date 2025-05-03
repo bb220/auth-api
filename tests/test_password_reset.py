@@ -12,7 +12,7 @@ def test_request_password_reset_sends_email(client, auth_headers, random_email):
 
     # Now patch send_reset_email for the password reset email
     with patch("app.main.send_reset_email") as mock_send_reset_email:
-        response = client.post("/request-password-reset", params={"email": random_email}, headers=auth_headers)
+        response = client.post("/request-password-reset", json={"email": random_email}, headers=auth_headers)
 
         assert response.status_code == 200, response.json()
         mock_send_reset_email.assert_called_once_with(random_email, ANY)
@@ -28,11 +28,11 @@ def test_password_reset_flow(client, auth_headers, random_email):
     client.get(f"/verify-email?token={token}", headers=auth_headers)
 
     # Request password reset
-    client.post("/request-password-reset", params={"email": random_email}, headers=auth_headers)
+    client.post("/request-password-reset", json={"email": random_email}, headers=auth_headers)
 
     # Perform actual reset
     reset_token = create_password_reset_token(random_email)
-    reset = client.post("/reset-password", params={
+    reset = client.post("/reset-password", json={
         "token": reset_token,
         "new_password": "NewTest1234"
     }, headers=auth_headers)

@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 import os
 from datetime import datetime, timedelta, timezone
 
@@ -38,6 +39,10 @@ add_cors_middleware(app)
 
 api_key_header = APIKeyHeader(name="Authorization")
 router = APIRouter()
+
+load_dotenv()
+
+FRONTEND_DOMAIN = os.getenv("FRONTEND_DOMAIN")
 
 def get_db():
     db = SessionLocal()
@@ -214,7 +219,7 @@ def request_password_reset(
         return {"message": "If the email is associated with an account, a reset link has been sent."}
 
     reset_token = create_password_reset_token(user.email)
-    reset_link = f"https://yourfrontend.com/reset-password?token={reset_token}"
+    reset_link = f"{FRONTEND_DOMAIN}/reset-password?token={reset_token}"
     send_reset_email(user.email, reset_link)
     print(reset_token)
 

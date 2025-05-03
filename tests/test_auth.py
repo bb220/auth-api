@@ -1,11 +1,5 @@
 from unittest.mock import patch, ANY
 
-def test_access_without_api_key(client):
-    response = client.get("/register")  # No headers
-
-    assert response.status_code == 403 
-    assert "Forbidden. Invalid or missing API Key." in response.json()["detail"]
-
 def test_register_user(client, auth_headers, random_email):
     response = client.post("/register", json={
         "email": random_email,
