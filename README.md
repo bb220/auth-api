@@ -23,7 +23,7 @@ Lean enough for your MVP. Strong enough to scale with you.
 - ⚡ Asynchronous background tasks for fast user experiences
 - 🛡️ Protected route examples
 - 📊 Event tracking for analytics and user behavior insights
-- 🛠️ Easily extendable with additional services (OAuth, profile management, roles)
+- 🛠️ Easily extendable (Third-party OAuth authentication, roles, etc.)
 
 ---
 
