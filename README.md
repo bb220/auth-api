@@ -10,8 +10,6 @@
 ![Deployed on Railway](https://img.shields.io/badge/Railway-App-6c4cff?style=for-the-badge&logo=railway)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-A lean, secure, and easily extendable user service for technical founders who want to move fast and build products — exposing a simple, powerful API.
-
 Built with FastAPI and SQLAlchemy, this service provides essential user management functionality out of the box and is ready to deploy. Designed for rapid development and easy extension, it helps technical founders go from idea to launch with minimal backend overhead.
 
 Lean enough for your MVP. Strong enough to scale with you.
